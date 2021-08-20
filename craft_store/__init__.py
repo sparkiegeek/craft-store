@@ -17,3 +17,6 @@
 """Interact with Canonical services such as Charmhub and the Snap Store."""
 
 __version__ = "0.0.1.dev1"
+
+
+from .store_client import StoreClient  # noqa: F401

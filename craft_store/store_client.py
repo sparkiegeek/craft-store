@@ -45,7 +45,7 @@ class WebBrowserWaitingInteractor(httpbakery.WebBrowserInteractor):
 
     # TODO: transfer implementation to macaroonbakery.
     def _wait_for_token(self, ctx, wait_token_url):
-        request_client = http_client.Client(user_agent=self.user_agent)
+        request_client = http_client.HTTPClient(user_agent=self.user_agent)
         resp = request_client.request("GET", wait_token_url)
         if resp.status_code != 200:
             raise errors.CandidTokenTimeoutError(url=wait_token_url)
@@ -84,10 +84,15 @@ class StoreConfig(config.Config):
         return self.config_path
 
 
-class StoreClient(http_client.Client):
+class StoreClient(http_client.HTTPClient):
     @property
     def _auth(self) -> Optional[str]:
-        return self._conf.get("auth")
+        auth = self._conf.get("auth")
+
+        if auth is None:
+            raise errors.CredentialsMissingError()
+
+        return auth
 
     @_auth.setter
     def _auth(self, auth: str) -> None:
@@ -193,8 +198,8 @@ class StoreClient(http_client.Client):
         self._token_request = token_request
         self._login()
 
-    def whoami(self) -> Optional[Dict[str, Any]]:
-        return self.get(self._endpoints.whoami).json()
+    def whoami(self) -> Dict[str, Any]:
+        return self.request("GET", self._endpoints.whoami).json()
 
     def request(
         self,
@@ -205,9 +210,9 @@ class StoreClient(http_client.Client):
         auth_header=True,
         **kwargs,
     ) -> requests.Response:
-        if headers and auth_header and self._auth is not None:
+        if headers and auth_header:
             headers["Authorization"] = f"Macaroon {self._auth}"
-        elif auth_header and self._auth is not None:
+        elif auth_header:
             headers = {"Authorization": f"Macaroon {self._auth}"}
         elif auth_header:
             raise RuntimeError("No auth data available")

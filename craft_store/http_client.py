@@ -30,7 +30,7 @@ from . import errors
 logger = logging.getLogger(__name__)
 
 
-class Client:
+class HTTPClient:
     """Generic HTTP Client to communicate with Canonical's Developer Gateway."""
 
     def __init__(self, *, user_agent: str) -> None:
@@ -46,15 +46,15 @@ class Client:
         self.session.mount("http://", HTTPAdapter(max_retries=retries))
         self.session.mount("https://", HTTPAdapter(max_retries=retries))
 
-    def get(self, *args, **kwargs):
+    def get(self, *args, **kwargs) -> requests.Response:
         """Perform an HTTP GET request."""
         return self.request("GET", *args, **kwargs)
 
-    def post(self, *args, **kwargs):
+    def post(self, *args, **kwargs) -> requests.Response:
         """Perform an HTTP POST request."""
         return self.request("POST", *args, **kwargs)
 
-    def put(self, *args, **kwargs):
+    def put(self, *args, **kwargs) -> requests.Response:
         """Perform an HTTP PUT request."""
         return self.request("PUT", *args, **kwargs)
 

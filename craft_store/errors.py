@@ -55,16 +55,18 @@ class StoreClientError(Exception):
 
 
 class StoreServerError(StoreClientError):
-
-    fmt = "{what}: {error_text} (code {error_code}).\n{action}"
-
     def __init__(self, response: requests.Response) -> None:
-        brief = (
-            "Issue encountered while processing your request: " f"{response.reason}."
-        )
+        brief = f"Issue encountered while processing your request: [{response.status_code}] {response.reason}."
         self.response = response
 
         super().__init__(brief=brief)
+
+
+class CredentialsMissingError(StoreClientError):
+    def __init__(self) -> None:
+        super().__init__(
+            brief="Credentials Missing.", resolution="Re authenticate and try again."
+        )
 
 
 class StoreNetworkError(StoreClientError):
